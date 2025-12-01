@@ -1,4 +1,4 @@
-﻿import streamlit as st
+import streamlit as st
 import requests
 import time
 
@@ -48,19 +48,19 @@ st.markdown("""
 
 st.markdown("<h1>SMART NYUKI</h1>", unsafe_allow_html=True)
 
-# Change this to your public Node-RED URL when deployed
-BASE_URL = st.text_input("Node-RED URL", value="http://127.0.0.1:1880", help="Use your public Node-RED URL when live")
+# ←←← YOUR PERMANENT GLOBAL URL (NO MORE TEXT BOX)
+BASE_URL = "https://1234abcd-5678-efgh.ngrok-free.app"
 
 def get_hives():
     try:
-        r = requests.get(f"{BASE_URL}/hives", timeout=5)
+        r = requests.get(f"{BASE_URL}/hives", timeout=10)
         return r.json() if r.status_code == 200 else {}
     except:
         return {}
 
-def harvest_hive(id):
+def harvest_hive(hive_id):
     try:
-        requests.post(f"{BASE_URL}/harvest/{id}")
+        requests.post(f"{BASE_URL}/harvest/{hive_id}", timeout=10)
     except:
         pass
 
@@ -80,18 +80,19 @@ while True:
                             <div class="progress-fill" style="width: {data.get('level',0)}%"></div>
                         </div>
                         <p style="font-size:28px;margin:20px 0">
-                            <strong>{data.get('weight_kg',0)} kg</strong> ({data.get('level',0)}% full)
+                            <strong>{data.get('weight_kg',0):.2f} kg</strong> ({data.get('level',0)}% full)
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
+                    
                     if data.get('level', 0) >= 50:
                         if st.button("HARVEST HONEY", key=f"harvest_{hid}"):
                             harvest_hive(hid)
-                            st.success(f"Hive {hid} harvested!")
+                            st.success(f"Hive {hid} harvested! Servo activated.")
                     else:
                         st.button("Not Ready", disabled=True, key=f"no_{hid}")
                     st.markdown("<br>", unsafe_allow_html=True)
         else:
-            st.info("No hives detected. Make sure Node-RED is running and URL is correct.")
+            st.warning("No hives detected yet — make sure your ngrok tunnel and Node-RED are running!")
 
     time.sleep(4)
